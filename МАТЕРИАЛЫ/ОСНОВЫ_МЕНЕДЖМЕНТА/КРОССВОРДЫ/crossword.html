@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Кроссворд — RUFLO УРОК</title>
+<style>
+  :root{
+    --cell: 46px;
+    --bg:#0e1420; --panel:#151d2c; --panel2:#1b2438; --border:#2a3550;
+    --text:#eef2fb; --muted:#c3cfe6; --accent:#3b82f6; --accent2:#22c55e;
+    --bad:#ef4444; --ok:#22c55e;
+    /* контраст сетки: белая клетка, жёлтая рамка 3px, чёрная буква — максимальная читаемость на чёрном фоне страницы */
+    --cellbg:#FFFFFF; --cellborder:#FFD700; --cellletter:#000000;
+    --cellactivebg:#FFF3A0; --cellactiveborder:#FFFF00; --cellactiveletter:#000000;
+    --wordhibg:#FFF6C9;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:Segoe UI,Arial,sans-serif;padding:16px}
+  h1{font-size:22px;margin:0 0 4px 0}
+  .subtitle{color:var(--muted);margin:0 0 16px 0;font-size:15px}
+  .toolbar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+  button{font-size:18px;font-weight:700;padding:12px 20px;border-radius:10px;border:2px solid var(--border);background:var(--panel2);color:var(--text);cursor:pointer}
+  button:hover{border-color:var(--accent)}
+  button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  button.good{background:var(--accent2);color:#06280f;border-color:var(--accent2)}
+  .layout{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;justify-content:center}
+  .gridwrap{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:20px;overflow:auto;max-width:100%;display:flex;flex-direction:column;align-items:center}
+  #grid{display:grid;gap:3px;background:transparent;margin:0 auto}
+  .cell{position:relative;width:var(--cell);height:var(--cell);background:transparent}
+  .cell.block{background:transparent}
+  .cell:not(.block){background:var(--cellbg);border:3px solid var(--cellborder);border-radius:4px}
+  .cell input{width:100%;height:100%;text-align:center;font-size:clamp(16px, calc(var(--cell) * 0.55), 34px);font-weight:700;border:none;background:transparent;color:var(--cellletter);text-transform:uppercase;caret-color:var(--cellactiveborder)}
+  .cell input:focus{outline:none}
+  .cell input:disabled{opacity:1;-webkit-text-fill-color:var(--cellletter);color:var(--cellletter);cursor:default}
+  .cell.active{background:var(--cellactivebg) !important;border-color:var(--cellactiveborder) !important;border-width:3px}
+  .cell.active input{color:var(--cellactiveletter)}
+  .cell.wordhi:not(.active){background:var(--wordhibg)}
+  .cell .num{position:absolute;top:1px;left:2px;font-size:13px;color:#8a6d00;font-weight:800;pointer-events:none}
+  .cell.active .num{color:#8a6d00}
+  .cell.correct{background:#c8f7d4 !important;border-color:#1a9e46 !important}
+  .cell.correct input{color:#0c5c29}
+  .cell.wrong{background:#ffd2d2 !important;border-color:#d21f1f !important}
+  .cell.wrong input{color:#8c0f0f}
+  .side{flex:1;min-width:300px;max-width:520px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px}
+  .clue-active{font-size:20px;font-weight:700;line-height:1.4;margin:0;color:#fff}
+  .clue-active .dir{color:#FFD700;font-weight:800}
+  .cluelist{max-height:420px;overflow:auto}
+  .cluelist ol{list-style:none}
+  .cluelist h3{margin:0 0 10px 0;font-size:18px;color:#FFD700}
+  .cluelist ol{margin:0 0 20px 0;padding-left:26px}
+  .cluelist li{margin-bottom:10px;font-size:21px;line-height:1.5;cursor:pointer;padding:4px 6px;border-radius:6px;color:#fff}
+  .cluelist li::marker{color:#FFD700;font-weight:800}
+  .cluelist li:hover{background:var(--panel2)}
+  .cluelist li.done{color:var(--muted);text-decoration:line-through}
+  .score{font-size:22px;font-weight:800;margin:0}
+  .score .pct{color:var(--accent)}
+  .profile{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 12px}
+  .profile input{font-size:15px;padding:8px 10px;border-radius:8px;border:2px solid var(--border);background:var(--panel2);color:var(--text);flex:1 1 200px}
+  .avn-block{display:none;border:2px solid var(--ok);border-radius:14px;padding:18px 20px;margin:0 0 20px;background:#06210f}
+  .avn-block.show{display:block}
+  .avn-block h2{margin:0 0 12px;font-size:22px;color:var(--ok)}
+  .avn-block .line{font-size:16px;margin:4px 0}
+  .avn-block .line b{color:var(--muted)}
+  .avn-toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+  button.avn{background:#0d3b66;border-color:#3a7bd5;color:#fff}
+  button.copy{background:#374151;border-color:#6b7280;color:#fff}
+  @media print{
+    body{background:#fff;color:#000;padding:0}
+    .toolbar,.side .clue-active,.grid-toolbar,.scroll-hint,#btnPrintKey{display:none !important}
+    .layout{display:block}
+    .card,.gridwrap,.side,.cluelist{background:#fff !important;border:1px solid #000;box-shadow:none;
+      height:auto !important;max-height:none !important;min-height:0 !important;
+      overflow:visible !important;overflow-y:visible !important;overflow-x:visible !important;
+      position:static !important}
+    .cell:not(.block){background:#fff !important;border:2px solid #000 !important}
+    .cell input{color:#000 !important;background:transparent !important}
+    .cell .num{color:#000 !important}
+    .cluelist h3,.cluelist li,.cluelist li::marker{color:#000 !important}
+    .cluelist{page-break-inside:auto}
+    .cluelist ol{page-break-inside:auto}
+    .cluelist li{page-break-inside:avoid;break-inside:avoid}
+    :root{--cell:32px}
+  }
+  @media (max-width:720px){
+    :root{--cell:36px}
+    .layout{flex-direction:column}
+  }
+  /* ===== RUFLO CROSSWORD MOBILE RESPONSIVE STANDARD =====
+     Мобильный режим включается по ширине <=600px (portrait) ИЛИ по
+     высоте <=600px при ширине <=960px (landscape телефон) — иначе
+     повёрнутый в альбомную ориентацию телефон (ширина 800-915px)
+     не попадал под правило max-width:600px и терял мобильный
+     тулбар/масштаб сетки. Логика продублирована в JS isMobileViewport()
+     ниже — CSS и JS должны совпадать. Масштабируется ТОЛЬКО #grid (через
+     JS-переменную --cell на самом #grid, не на :root) — шапка/результат/
+     кнопки AVN сохраняют обычный крупный размер. См. "grid-toolbar" ниже
+     и applyGridScale(). */
+  .grid-toolbar{display:none}
+  .scroll-hint{display:none;color:#FFD700;font-size:13px;font-weight:700;margin:0 0 6px}
+  @media (max-width:600px), (max-height:600px) and (max-width:960px){
+    body{padding:10px}
+    h1{font-size:19px}
+    .subtitle{font-size:13px}
+    button{font-size:16px;padding:10px 14px}
+    .gridwrap{padding:8px;border-width:1px}
+    .cell:not(.block){border-width:2px}
+    .cell .num{font-size:clamp(6px, calc(var(--cell) * 0.26), 13px);top:0;left:1px}
+    .grid-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+    .grid-toolbar button{flex:1 1 auto;font-size:15px;padding:10px 12px}
+    .clue-active{font-size:18px}
+    .cluelist li{font-size:19px}
+  }
+</style>
+</head>
+<body>
+  <h1 id="pageTitle">Кроссворд</h1>
+  <p class="subtitle" id="pageSubtitle"></p>
+
+  <div class="toolbar" id="toolbar">
+    <button class="primary" id="btnCheck">✅ ПРОВЕРИТЬ</button>
+    <button id="btnClear">🔄 ОЧИСТИТЬ</button>
+    <button id="btnPrint">🖨 ПЕЧАТЬ</button>
+    <button id="btnBackToCatalog">🔙 НАЗАД К КРОССВОРДАМ</button>
+  </div>
+  <button id="btnPrintKey" style="display:none;font-size:22px;font-weight:800;min-height:56px;padding:14px 26px;border-radius:12px;border:2px solid #FFD700;background:#8a5a00;color:#fff;cursor:pointer;margin-bottom:16px">🖨️ Распечатать ключ</button>
+
+  <div class="profile" id="profileBlock">
+    <input type="text" id="profName" placeholder="Ф.И.О. (необязательно)">
+    <input type="text" id="profGroup" placeholder="Группа (необязательно)">
+  </div>
+  <p class="score" id="scoreLine"></p>
+
+  <div class="avn-block" id="avnBlock">
+    <h2>✅ ЗАДАНИЕ ВЫПОЛНЕНО</h2>
+    <div class="line"><b>Студент:</b> <span id="avnName"></span></div>
+    <div class="line"><b>Группа:</b> <span id="avnGroup"></span></div>
+    <div class="line"><b>Дисциплина:</b> <span id="avnDiscipline"></span></div>
+    <div class="line"><b>Тема:</b> <span id="avnTopic"></span></div>
+    <div class="line"><b>Результат:</b> <span id="avnResult"></span></div>
+    <div class="line"><b>Дата:</b> <span id="avnDate"></span></div>
+    <div class="avn-toolbar">
+      <button class="copy" id="btnCopyResult">📋 СКОПИРОВАТЬ РЕЗУЛЬТАТ</button>
+      <a class="avn" id="btnOpenAvn" href="https://avn.iku.kg/" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;font-size:18px;font-weight:700;padding:12px 20px;border-radius:10px;border:2px solid #3a7bd5;text-decoration:none">🎓 ОТКРЫТЬ МОЙ AVN</a>
+    </div>
+    <p class="line" id="avnCopyStatus" style="margin-top:10px;color:var(--ok)"></p>
+  </div>
+
+  <div class="layout">
+    <div class="gridwrap">
+      <div class="grid-toolbar" id="gridToolbar">
+        <button id="btnGridFit">↔ ПО ШИРИНЕ</button>
+        <button id="btnGridZoom">🔍 УВЕЛИЧИТЬ</button>
+      </div>
+      <p class="scroll-hint" id="scrollHint" hidden>👉 Сетка шире экрана — прокрутите пальцем вбок</p>
+      <div id="grid"></div>
+    </div>
+    <div class="side">
+      <div class="card">
+        <p class="clue-active" id="activeClue">Выберите клетку…</p>
+      </div>
+      <div class="card cluelist">
+        <h3>По горизонтали</h3>
+        <ol id="acrossList"></ol>
+        <h3>По вертикали</h3>
+        <ol id="downList"></ol>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const params = new URLSearchParams(location.search);
+  const dataFile = params.get('data') || 'crossword_data_tema01.json';
+  const mode = params.get('mode') || 'interactive'; // interactive | print | key
+  const slug = dataFile.replace(/^crossword_data_/, '').replace(/\.json$/, '');
+  const STORAGE_KEY = 'ruflo_crossword_' + slug;
+
+  // ===== RUFLO STUDENT AVN SUBMISSION (только mode=interactive) =====
+  // Ф.И.О./группа — только в localStorage самого студента, ничего не
+  // отправляется на сервер и не связано с логином/паролем AVN. Кнопка
+  // «Открыть мой AVN» — обычная внешняя ссылка, вход выполняет сам студент.
+  const PROFILE_KEY = 'ruflo_student_profile';
+  function loadProfile(){
+    try { return JSON.parse(localStorage.getItem(PROFILE_KEY)) || {}; } catch(e){ return {}; }
+  }
+  function saveProfile(){
+    const nameEl = document.getElementById('profName'), groupEl = document.getElementById('profGroup');
+    if (!nameEl) return;
+    try { localStorage.setItem(PROFILE_KEY, JSON.stringify({ name: nameEl.value.trim(), group: groupEl.value.trim() })); } catch(e){}
+  }
+  function todayStr(){ return new Date().toLocaleDateString('ru-RU'); }
+  function updateAvnBlock(discipline, topicNumber, topicTitle, correct, total, pct){
+    if (mode !== 'interactive') return;
+    const block = document.getElementById('avnBlock');
+    const p = loadProfile();
+    document.getElementById('avnName').textContent = p.name || '—';
+    document.getElementById('avnGroup').textContent = p.group || '—';
+    document.getElementById('avnDiscipline').textContent = discipline;
+    document.getElementById('avnTopic').textContent = `№${topicNumber}: ${topicTitle}`;
+    document.getElementById('avnResult').textContent = `${correct} из ${total} (${pct}%)`;
+    document.getElementById('avnDate').textContent = todayStr();
+    block.classList.add('show');
+  }
+
+  fetch(dataFile).then(r => r.json()).then(init).catch(err => {
+    document.body.innerHTML = '<p style="color:#f66;font-size:18px">Не удалось загрузить данные кроссворда: ' + err.message + '</p>';
+  });
+
+  function init(data){
+    const titlePrefix = mode === 'key' ? '🔑 КЛЮЧ ПРЕПОДАВАТЕЛЯ (ОТВЕТЫ) — ' : '🧩 Кроссворд — ';
+    document.getElementById('pageTitle').textContent = titlePrefix + 'Тема ' + data.topicNumber + '. ' + data.topicTitle;
+    if (mode === 'key') document.getElementById('pageTitle').style.color = '#FFD700';
+    document.getElementById('pageSubtitle').textContent = data.discipline + (data.source ? ' · Источник: ' + data.source : '');
+
+    const words = data.words;
+    const W = data.width, H = data.height;
+
+    // build cell map
+    const cells = {}; // "r,c" -> {letter, numbers:[], words:[{wordIdx,dir,pos}]}
+    words.forEach((w, wi) => {
+      for (let i = 0; i < w.word.length; i++){
+        const r = w.dir === 'A' ? w.row : w.row + i;
+        const c = w.dir === 'A' ? w.col + i : w.col;
+        const key = r + ',' + c;
+        if (!cells[key]) cells[key] = { r, c, letter: w.word[i], memberships: [] };
+        cells[key].memberships.push({ wi, dir: w.dir, pos: i });
+      }
+    });
+    words.forEach(w => {
+      const key = w.row + ',' + w.col;
+      if (!cells[key].number) cells[key].number = w.number;
+    });
+
+    // grid dom
+    const gridEl = document.getElementById('grid');
+    gridEl.style.gridTemplateColumns = 'repeat(' + W + ', var(--cell))';
+    gridEl.style.gridTemplateRows = 'repeat(' + H + ', var(--cell))';
+
+    // ===== RUFLO CROSSWORD MOBILE RESPONSIVE STANDARD =====
+    // <=600px: пересчитываем ширину сетки под фактическое число колонок
+    // (W), масштабируем ТОЛЬКО #grid (через свою CSS-переменную --cell,
+    // выставленную JS на самом #grid — не на :root), а не весь сайт.
+    // Два режима: "fit" (вся сетка целиком, по умолчанию) и "zoom"
+    // (крупные клетки + горизонтальная прокрутка пальцем). Desktop
+    // (>600px) эта логика не трогает — там --cell остаётся дефолтным
+    // (46px/36px из CSS), JS ничего не выставляет.
+    const gridwrapEl = document.querySelector('.gridwrap');
+    const MOBILE_BREAKPOINT = 600;
+    const GRID_GAP = 3;
+    let mobileZoom = false; // false = "по ширине", true = "увеличить"
+
+    function isMobileViewport(){
+      // должно совпадать с CSS-медиа-запросом выше: portrait <=600px
+      // ИЛИ landscape-телефон (высота <=600px при ширине <=960px).
+      return window.innerWidth <= MOBILE_BREAKPOINT ||
+        (window.innerHeight <= MOBILE_BREAKPOINT && window.innerWidth <= 960);
+    }
+
+    function computeFitCellSize(){
+      const bodyPadX = 20;   // body padding 10px слева+справа (мобильный @media)
+      const wrapPadX = 16;   // .gridwrap padding 8px слева+справа (мобильный @media)
+      const borderSafety = 8; // рамка .gridwrap + запас, чтобы ничего не обрезалось
+      const available = window.innerWidth - bodyPadX - wrapPadX - borderSafety;
+      const raw = Math.floor((available - GRID_GAP * (W - 1)) / W);
+      // ВАЖНО (исправлено после реального QA на телефоне 2026-09-01):
+      // клетка не может быть меньше MIN_LEGIBLE_CELL — при клетке мельче
+      // ~22px внутренняя область (клетка минус рамка) становится тоньше
+      // обязательного минимума шрифта буквы (--input font-size >= 16px,
+      // требование iOS Safari против авто-zoom при фокусе) — буква
+      // физически не помещается в поле и обрезается почти целиком,
+      // визуально выглядит как "буквы не видно". Более ранняя версия
+      // убирала этот порог ради буквального "вся сетка без прокрутки",
+      // но это ломало ввод на широких (22-29 колонок) автосгенерированных
+      // сетках Тем 1-4 — читаемость и видимость введённой буквы важнее.
+      // Поэтому для очень широких сеток режим "↔ ПО ШИРИНЕ" честно
+      // допускает горизонтальную прокрутку (см. overflow-x:auto на
+      // .gridwrap) вместо невидимых букв.
+      const MIN_LEGIBLE_CELL = 22;
+      return Math.max(MIN_LEGIBLE_CELL, raw);
+    }
+
+    const scrollHintEl = document.getElementById('scrollHint');
+    function applyGridScale(){
+      // overflow-x всегда 'auto' (никогда 'hidden') — если даже на
+      // минимально читаемом размере клетки очень широкая сетка (много
+      // колонок) физически не помещается на экране, студент долистает
+      // пальцем, а не потеряет клетки справа молча.
+      gridwrapEl.style.overflowX = 'auto';
+      if (!isMobileViewport()){
+        gridEl.style.removeProperty('--cell');
+        if (scrollHintEl) scrollHintEl.hidden = true;
+        return;
+      }
+      if (mobileZoom){
+        gridEl.style.setProperty('--cell', '42px');
+      } else {
+        gridEl.style.setProperty('--cell', computeFitCellSize() + 'px');
+      }
+      // Показать подсказку "прокрутите вбок", только если сетка реально
+      // шире доступной области (широкие 22-29-колоночные автосгенерированные
+      // темы на узком экране) — иначе подсказка не нужна и не показывается.
+      requestAnimationFrame(() => {
+        if (!scrollHintEl) return;
+        scrollHintEl.hidden = gridEl.scrollWidth <= gridwrapEl.clientWidth + 1;
+      });
+    }
+
+    const btnGridFit = document.getElementById('btnGridFit');
+    const btnGridZoom = document.getElementById('btnGridZoom');
+    function updateGridToolbarButtons(){
+      if (!btnGridFit || !btnGridZoom) return;
+      btnGridFit.classList.toggle('primary', !mobileZoom);
+      btnGridZoom.classList.toggle('primary', mobileZoom);
+    }
+    if (btnGridFit) btnGridFit.addEventListener('click', () => { mobileZoom = false; applyGridScale(); updateGridToolbarButtons(); });
+    if (btnGridZoom) btnGridZoom.addEventListener('click', () => { mobileZoom = true; applyGridScale(); updateGridToolbarButtons(); });
+
+    applyGridScale();
+    updateGridToolbarButtons();
+    window.addEventListener('resize', applyGridScale);
+    window.addEventListener('orientationchange', () => setTimeout(applyGridScale, 250));
+
+    const inputByKey = {};
+    for (let r = 0; r < H; r++){
+      for (let c = 0; c < W; c++){
+        const key = r + ',' + c;
+        const cellDiv = document.createElement('div');
+        if (cells[key]){
+          cellDiv.className = 'cell';
+          cellDiv.dataset.key = key;
+          if (cells[key].number){
+            const num = document.createElement('div');
+            num.className = 'num';
+            num.textContent = cells[key].number;
+            cellDiv.appendChild(num);
+          }
+          const input = document.createElement('input');
+          input.maxLength = 2; // allow overtype then trim
+          input.autocomplete = 'off';
+          input.dataset.key = key;
+          if (mode === 'key'){ input.value = cells[key].letter; input.disabled = true; }
+          cellDiv.appendChild(input);
+          inputByKey[key] = input;
+        } else {
+          cellDiv.className = 'cell block';
+        }
+        gridEl.appendChild(cellDiv);
+      }
+    }
+
+    // clue lists
+    const across = words.filter(w => w.dir === 'A').sort((a,b) => a.number - b.number);
+    const down = words.filter(w => w.dir === 'D').sort((a,b) => a.number - b.number);
+    const acrossListEl = document.getElementById('acrossList');
+    const downListEl = document.getElementById('downList');
+    function renderClueList(list, el, dirLabel){
+      el.innerHTML = '';
+      list.forEach(w => {
+        const wi = words.indexOf(w);
+        const li = document.createElement('li');
+        li.textContent = w.number + '. ' + w.clue;
+        li.dataset.wi = wi;
+        li.addEventListener('click', () => selectWord(wi));
+        el.appendChild(li);
+      });
+    }
+    renderClueList(across, acrossListEl, 'across');
+    renderClueList(down, downListEl, 'down');
+
+    let currentWordIdx = null;
+
+    function selectWord(wi){
+      currentWordIdx = wi;
+      const w = words[wi];
+      document.querySelectorAll('.cell.active, .cell.wordhi').forEach(el => el.classList.remove('active','wordhi'));
+      for (let i = 0; i < w.word.length; i++){
+        const r = w.dir === 'A' ? w.row : w.row + i;
+        const c = w.dir === 'A' ? w.col + i : w.col;
+        const el = gridEl.querySelector('[data-key="' + r + ',' + c + '"]');
+        if (el) el.classList.add('wordhi');
+      }
+      document.getElementById('activeClue').innerHTML =
+        '<span class="dir">' + (w.dir === 'A' ? 'По горизонтали' : 'По вертикали') + ' ' + w.number + '.</span> ' + w.clue;
+      focusCell(w.row, w.col, wi);
+    }
+
+    function focusCell(r, c, preferWi){
+      const key = r + ',' + c;
+      const input = inputByKey[key];
+      if (!input) return;
+      document.querySelectorAll('.cell.active').forEach(el => el.classList.remove('active'));
+      input.parentElement.classList.add('active');
+      input.focus();
+      if (preferWi != null) currentWordIdx = preferWi;
+    }
+
+    gridEl.addEventListener('click', (e) => {
+      const input = e.target.closest('.cell')?.querySelector('input');
+      if (!input) return;
+      const key = input.dataset.key;
+      const memberships = cells[key].memberships;
+      if (!memberships.length) return;
+      // toggle direction if clicking same cell twice and both directions exist
+      let candidate = memberships.find(m => m.dir === 'A');
+      const hasDown = memberships.find(m => m.dir === 'D');
+      const currentInputKey = document.querySelector('.cell.active input')?.dataset.key;
+      if (currentInputKey === key && candidate && hasDown){
+        const curDir = words[currentWordIdx]?.dir;
+        candidate = curDir === 'A' ? hasDown : candidate;
+      }
+      selectWord(candidate ? candidate.wi : memberships[0].wi);
+      focusCell(cells[key].r, cells[key].c, candidate ? candidate.wi : memberships[0].wi);
+    });
+
+    function moveInWord(delta){
+      if (currentWordIdx == null) return;
+      const w = words[currentWordIdx];
+      const cur = document.querySelector('.cell.active input');
+      if (!cur) return;
+      const [r, c] = cur.dataset.key.split(',').map(Number);
+      const pos = w.dir === 'A' ? (c - w.col) : (r - w.row);
+      const newPos = pos + delta;
+      if (newPos < 0 || newPos >= w.word.length) return;
+      const nr = w.dir === 'A' ? w.row : w.row + newPos;
+      const nc = w.dir === 'A' ? w.col + newPos : w.col;
+      focusCell(nr, nc, currentWordIdx);
+    }
+
+    gridEl.addEventListener('keydown', (e) => {
+      const input = e.target;
+      if (!input.dataset || !input.dataset.key) return;
+      const [r, c] = input.dataset.key.split(',').map(Number);
+      if (e.key === 'ArrowRight'){ e.preventDefault(); const el = gridEl.querySelector('[data-key="' + r + ',' + (c+1) + '"] input'); if (el) focusCell(r, c+1); }
+      else if (e.key === 'ArrowLeft'){ e.preventDefault(); const el = gridEl.querySelector('[data-key="' + r + ',' + (c-1) + '"] input'); if (el) focusCell(r, c-1); }
+      else if (e.key === 'ArrowDown'){ e.preventDefault(); const el = gridEl.querySelector('[data-key="' + (r+1) + ',' + c + '"] input'); if (el) focusCell(r+1, c); }
+      else if (e.key === 'ArrowUp'){ e.preventDefault(); const el = gridEl.querySelector('[data-key="' + (r-1) + ',' + c + '"] input'); if (el) focusCell(r-1, c); }
+      else if (e.key === 'Backspace'){
+        if (input.value === ''){ e.preventDefault(); moveInWord(-1); const cur = document.querySelector('.cell.active input'); if (cur) cur.value=''; saveState(); }
+      }
+    });
+
+    gridEl.addEventListener('input', (e) => {
+      const input = e.target;
+      if (!input.dataset || !input.dataset.key) return;
+      let v = input.value.replace(/[^А-Яа-яЁёA-Za-z]/g, '').toUpperCase();
+      input.value = v.slice(-1);
+      input.parentElement.classList.remove('correct','wrong');
+      moveInWord(1);
+      saveState();
+    });
+
+    function currentGridState(){
+      const state = {};
+      Object.keys(inputByKey).forEach(key => { state[key] = inputByKey[key].value || ''; });
+      return state;
+    }
+
+    function saveState(){
+      if (mode !== 'interactive') return;
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(currentGridState())); } catch(e){}
+    }
+
+    function loadState(){
+      if (mode !== 'interactive') return;
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const state = JSON.parse(raw);
+        Object.keys(state).forEach(key => { if (inputByKey[key]) inputByKey[key].value = state[key]; });
+      } catch(e){}
+    }
+    loadState();
+
+    document.getElementById('btnCheck').addEventListener('click', () => {
+      let correctWords = 0;
+      words.forEach(w => {
+        let ok = true;
+        for (let i = 0; i < w.word.length; i++){
+          const r = w.dir === 'A' ? w.row : w.row + i;
+          const c = w.dir === 'A' ? w.col + i : w.col;
+          const key = r + ',' + c;
+          const input = inputByKey[key];
+          if (!input || input.value !== w.word[i]) { ok = false; }
+        }
+        if (ok) correctWords++;
+      });
+      // per-cell coloring without revealing the answer
+      Object.keys(cells).forEach(key => {
+        const input = inputByKey[key];
+        if (!input) return;
+        const cellInfo = cells[key];
+        const parent = input.parentElement;
+        parent.classList.remove('correct','wrong');
+        if (input.value === ''){ return; }
+        if (input.value === cellInfo.letter) parent.classList.add('correct');
+        else parent.classList.add('wrong');
+      });
+      const total = words.length;
+      const pct = Math.round((correctWords / total) * 100);
+      document.getElementById('scoreLine').innerHTML =
+        'Результат: <b>' + correctWords + ' / ' + total + '</b> — <span class="pct">' + pct + '%</span>';
+      updateAvnBlock(data.discipline, data.topicNumber, data.topicTitle, correctWords, total, pct);
+    });
+
+    document.getElementById('btnClear').addEventListener('click', () => {
+      Object.values(inputByKey).forEach(input => { input.value = ''; input.parentElement.classList.remove('correct','wrong'); });
+      document.getElementById('scoreLine').textContent = '';
+      document.getElementById('avnBlock').classList.remove('show');
+      try { localStorage.removeItem(STORAGE_KEY); } catch(e){}
+    });
+
+    document.getElementById('btnPrint').addEventListener('click', () => window.print());
+    document.getElementById('btnBackToCatalog').addEventListener('click', () => {
+      location.href = location.origin + '/' + encodeURI('10_РАБОЧЕЕ_МЕСТО/УРОК.html') + '#crosswords';
+    });
+
+    if (mode === 'print' || mode === 'key'){
+      document.getElementById('toolbar').style.display = 'none';
+      document.getElementById('activeClue').parentElement.style.display = 'none';
+      document.getElementById('profileBlock').style.display = 'none';
+      document.getElementById('avnBlock').style.display = 'none';
+      if (document.getElementById('gridToolbar')) document.getElementById('gridToolbar').style.display = 'none';
+      if (mode === 'print') setTimeout(() => window.print(), 300);
+      if (mode === 'key'){
+        const btnPrintKey = document.getElementById('btnPrintKey');
+        btnPrintKey.style.display = 'inline-block';
+        btnPrintKey.addEventListener('click', () => window.print());
+      }
+    } else {
+      const p = loadProfile();
+      document.getElementById('profName').value = p.name || '';
+      document.getElementById('profGroup').value = p.group || '';
+      document.getElementById('profName').addEventListener('change', saveProfile);
+      document.getElementById('profGroup').addEventListener('change', saveProfile);
+      document.getElementById('btnCopyResult').addEventListener('click', async () => {
+        const p2 = loadProfile();
+        const text = `RUFLO УРОК\n` +
+          `Ф.И.О.: ${p2.name || '—'}\n` +
+          `Группа: ${p2.group || '—'}\n` +
+          `Дисциплина: ${data.discipline}\n` +
+          `Тема №${data.topicNumber}: ${data.topicTitle}\n` +
+          `Задание: 🧩 Кроссворд\n` +
+          `Результат: ${document.getElementById('avnResult').textContent}\n` +
+          `Дата: ${todayStr()}`;
+        const statusEl = document.getElementById('avnCopyStatus');
+        try { await navigator.clipboard.writeText(text); statusEl.textContent = '✅ Результат скопирован — вставьте его в AVN.'; }
+        catch(e){ statusEl.textContent = '⚠ Не удалось скопировать автоматически — выделите текст вручную.'; }
+      });
+    }
+  }
+})();
+</script>
+</body>
+</html>

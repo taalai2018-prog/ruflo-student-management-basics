@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="color-scheme" content="dark">
+<title>RUFLO УРОК — Студент</title>
+<style>
+  :root{
+    --bg:#000; --card:#111; --card2:#161616; --border:#333;
+    --gold:#FFD700; --text:#ffffff; --muted:#b8b8b8; --ok:#4ade80;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:Segoe UI,Arial,sans-serif;overflow-x:hidden}
+  body{padding:16px;padding-bottom:48px}
+  .wrap{max-width:720px;margin:0 auto}
+  h1{font-size:26px;margin:0 0 4px 0}
+  h2{font-size:24px;margin:0 0 6px 0;line-height:1.3}
+  .muted{color:var(--muted);font-size:16px}
+  .top{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+  .top .emoji{font-size:30px}
+  button, .btn{
+    display:block; width:100%; box-sizing:border-box;
+    font-size:20px; font-weight:700; padding:18px 20px; margin-bottom:14px;
+    border-radius:14px; border:2px solid var(--border); background:var(--card);
+    color:var(--text); text-align:left; cursor:pointer; min-height:56px;
+    text-decoration:none;
+  }
+  button:active, .btn:active{transform:scale(0.98)}
+  .btn.primary{background:var(--gold);color:#000;border-color:var(--gold)}
+  .btn.pending{background:transparent;color:var(--muted);border-style:dashed;cursor:default;font-weight:600}
+  .btn.back{background:transparent;border-color:var(--gold);color:var(--gold);font-size:19px;padding:14px 18px;margin-bottom:20px}
+  .btn.avn{background:#0d3b66;border-color:#3a7bd5;color:#fff}
+  .btn.avn small{color:#bcd4f5}
+  .btn small{display:block;font-weight:400;font-size:14px;color:var(--muted);margin-top:4px}
+
+  .discipline-card{background:var(--card);border:2px solid var(--border);border-radius:16px;padding:20px;margin-bottom:20px}
+  .discipline-card h2{color:#fff}
+
+  .topic-card{background:var(--card);border:2px solid var(--border);border-radius:16px;padding:22px;margin-bottom:16px;cursor:pointer}
+  .topic-card:active{transform:scale(0.99)}
+  .topic-num{color:var(--gold);font-size:16px;font-weight:800;margin:0 0 6px 0}
+  .topic-title{font-size:22px;font-weight:700;margin:0 0 10px 0;line-height:1.35}
+  .status-ready{color:var(--ok);font-size:16px}
+  .status-pending{color:var(--muted);font-size:16px}
+
+  .section-title{color:var(--gold);font-size:19px;font-weight:800;margin:22px 0 10px 0;letter-spacing:0.02em}
+
+  video{width:100%;aspect-ratio:16/9;background:#000;border-radius:12px}
+
+  .lit-card{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;font-size:17px;line-height:1.5}
+  .assignment-text{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:18px;font-size:18px;line-height:1.6;margin-bottom:14px}
+
+  .material-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:6px}
+  .material-row .btn{width:auto;flex:1 1 200px;margin-bottom:0}
+  .btn.wa{background:#128C7E;border-color:#25D366;color:#fff}
+  .lan-warn{color:#f59e0b;font-size:14px;margin:0 0 14px 0}
+
+  #screenHome[hidden], #screenTopic[hidden]{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="screenHome">
+    <div class="top"><span class="emoji">🎓</span><h1>RUFLO УРОК</h1></div>
+
+    <div class="discipline-card">
+      <h2 id="disciplineName">📚 …</h2>
+      <p class="muted" id="disciplineMeta">Загрузка…</p>
+      <a class="btn primary" id="btnSyllabus" href="#" target="_blank" rel="noopener" hidden>📘 СИЛЛАБУС (PDF)</a>
+      <a class="btn avn" href="https://avn.iku.kg/" target="_blank" rel="noopener">🎓 AVN<small>Открыть образовательный портал AVN</small></a>
+    </div>
+
+    <div class="section-title">ТЕМЫ ДИСЦИПЛИНЫ</div>
+    <div id="topicsList"><p class="muted">Загрузка тем…</p></div>
+  </div>
+
+  <div id="screenTopic" hidden>
+    <button class="btn back" id="btnBack">← НАЗАД</button>
+    <p class="topic-num" id="topicNum"></p>
+    <h2 id="topicTitle"></h2>
+
+    <div class="section-title">📖 ЛЕКЦИЯ</div>
+    <div id="matLecture"></div>
+
+    <div class="section-title">📊 ПРЕЗЕНТАЦИЯ</div>
+    <div id="matPresentation"></div>
+
+    <div class="section-title">🎬 ВИДЕОУРОК</div>
+    <div id="matVideo"></div>
+
+    <div class="section-title">🧩 КРОССВОРД</div>
+    <div id="matCrossword"></div>
+
+    <div class="section-title">✅ ТЕСТ</div>
+    <div id="matTest"></div>
+
+    <div class="section-title">✍️ ЗАДАНИЕ</div>
+    <div id="matAssignment"></div>
+
+    <div class="section-title">📚 ЛИТЕРАТУРА</div>
+    <div id="matLiterature"></div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  const REGISTRY_URL = "МАТЕРИАЛЫ/ОСНОВЫ_МЕНЕДЖМЕНТА/STUDENT_MATERIALS_REGISTRY.json";
+  const CATALOG_URL = 'МАТЕРИАЛЫ/CROSSWORDS_CATALOG.json';
+  let REGISTRY = null;
+  let CATALOG = null;
+
+  function pendingBtn(label){
+    const d = document.createElement('div');
+    d.className = 'btn pending';
+    d.textContent = '⏳ ' + label;
+    return d;
+  }
+
+  function linkBtn(label, href, sub){
+    const a = document.createElement('a');
+    a.className = 'btn primary';
+    a.href = href;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.innerHTML = label + (sub ? '<small>' + sub + '</small>' : '');
+    return a;
+  }
+
+  function findCrossword(topicNumber){
+    if (!CATALOG || !CATALOG.crosswords) return null;
+    return CATALOG.crosswords.find(cw => cw.discipline === REGISTRY.discipline && cw.topic_number === topicNumber && cw.status === 'ready') || null;
+  }
+
+  function accessInfo(){
+    const h = location.hostname;
+    const isPrivate = !h || /^(localhost|127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.)/.test(h);
+    if (location.protocol === 'https:' && !isPrivate) return { type: 'public_https', warn: false };
+    return { type: 'lan_only', warn: true };
+  }
+  function absoluteMaterialUrl(relPath){
+    try { return new URL(relPath, location.href).href; } catch(e){ return relPath; }
+  }
+  function buildWaText(topicNumber, topicTitle, materialTitle, url){
+    let msg = `RUFLO УРОК\nДисциплина: ${REGISTRY.discipline}\nТема №${topicNumber}: ${topicTitle}\n\n` +
+      `Задание:\n${materialTitle}\n\nОткрыть:\n${url}`;
+    if (accessInfo().warn) msg += `\n\n⚠ Ссылка работает только в той же Wi-Fi сети (LAN)`;
+    return msg;
+  }
+  function waButton(topicNumber, topicTitle, materialTitle, relOrAbsUrl){
+    const a = document.createElement('a');
+    a.className = 'btn wa';
+    a.href = 'https://wa.me/?text=' + encodeURIComponent(buildWaText(topicNumber, topicTitle, materialTitle, absoluteMaterialUrl(relOrAbsUrl)));
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.textContent = '📲 Отправить в WhatsApp';
+    return a;
+  }
+  function lanWarnBadge(){
+    const p = document.createElement('p');
+    p.className = 'lan-warn';
+    p.textContent = '⚠ Работает только в одной Wi-Fi сети';
+    return p;
+  }
+  function materialWithShare(container, primaryEl, topicNumber, topicTitle, materialTitle, shareUrl){
+    container.innerHTML = '';
+    if (!shareUrl){ container.appendChild(primaryEl); return; }
+    const row = document.createElement('div');
+    row.className = 'material-row';
+    row.appendChild(primaryEl);
+    row.appendChild(waButton(topicNumber, topicTitle, materialTitle, shareUrl));
+    container.appendChild(row);
+    if (accessInfo().warn) container.appendChild(lanWarnBadge());
+  }
+
+  function renderTopicsList(){
+    const root = document.getElementById('topicsList');
+    root.innerHTML = '';
+    REGISTRY.topics.forEach(t => {
+      const cw = findCrossword(t.topic_number);
+      const hasAny = t.presentation || t.video || t.lecture || t.test || t.practice || cw;
+      const card = document.createElement('div');
+      card.className = 'topic-card';
+      card.innerHTML =
+        `<p class="topic-num">ТЕМА №${t.topic_number}</p>` +
+        `<p class="topic-title">${t.topic_title}</p>` +
+        (hasAny ? `<p class="status-ready">✅ Материалы готовы</p>` : `<p class="status-pending">⏳ Материалы готовятся</p>`);
+      card.addEventListener('click', () => openTopic(t.topic_number));
+      root.appendChild(card);
+    });
+  }
+
+  async function openTopic(topicNumber){
+    const t = REGISTRY.topics.find(x => x.topic_number === topicNumber);
+    if (!t) return;
+    document.getElementById('topicNum').textContent = 'ТЕМА №' + t.topic_number;
+    document.getElementById('topicTitle').textContent = t.topic_title;
+
+    const lecEl = document.getElementById('matLecture');
+    if (t.lecture){
+      materialWithShare(lecEl, linkBtn('📖 ОТКРЫТЬ ЛЕКЦИЮ', t.lecture),
+        t.topic_number, t.topic_title, '📖 Лекция', t.lecture);
+    } else { lecEl.innerHTML = ''; lecEl.appendChild(pendingBtn('Материал готовится')); }
+
+    const presEl = document.getElementById('matPresentation');
+    if (t.presentation){
+      materialWithShare(presEl, linkBtn('📊 ОТКРЫТЬ ПРЕЗЕНТАЦИЮ', t.presentation),
+        t.topic_number, t.topic_title, '📊 Презентация', t.presentation);
+    } else { presEl.innerHTML = ''; presEl.appendChild(pendingBtn('Материал готовится')); }
+
+    const vidEl = document.getElementById('matVideo');
+    vidEl.innerHTML = '';
+    if (t.video){
+      const v = document.createElement('video');
+      v.controls = true; v.playsInline = true; v.preload = 'metadata';
+      v.src = t.video;
+      vidEl.appendChild(v);
+      const shareRow = document.createElement('div');
+      shareRow.className = 'material-row';
+      shareRow.style.marginTop = '10px';
+      shareRow.appendChild(waButton(t.topic_number, t.topic_title, '🎬 Видеоурок', t.video));
+      vidEl.appendChild(shareRow);
+      if (accessInfo().warn) vidEl.appendChild(lanWarnBadge());
+    } else { vidEl.appendChild(pendingBtn('Материал готовится')); }
+
+    const cwEl = document.getElementById('matCrossword');
+    const cw = findCrossword(t.topic_number);
+    if (cw){
+      materialWithShare(cwEl, linkBtn('🧩 РЕШИТЬ КРОССВОРД', cw.interactive_path, cw.words_count + ' терминов'),
+        t.topic_number, t.topic_title, '🧩 Кроссворд', cw.interactive_path);
+    } else { cwEl.innerHTML = ''; cwEl.appendChild(pendingBtn('Материал готовится')); }
+
+    const testEl = document.getElementById('matTest');
+    if (t.test){
+      materialWithShare(testEl, linkBtn('✅ ОТКРЫТЬ ТЕСТ', t.test),
+        t.topic_number, t.topic_title, '✅ Тест', t.test);
+    } else { testEl.innerHTML = ''; testEl.appendChild(pendingBtn('Тест готовится')); }
+
+    const asgEl = document.getElementById('matAssignment');
+    asgEl.innerHTML = '';
+    if (t.practice){
+      materialWithShare(asgEl, linkBtn('🧩 ОТКРЫТЬ ПРАКТИКУ', t.practice),
+        t.topic_number, t.topic_title, '🧩 Практика', t.practice);
+    } else if (t.assignment_practical){
+      const box = document.createElement('div');
+      box.className = 'assignment-text';
+      box.textContent = t.assignment_practical;
+      asgEl.appendChild(box);
+    } else { asgEl.appendChild(pendingBtn('Материал готовится')); }
+
+    const litEl = document.getElementById('matLiterature');
+    litEl.innerHTML = '<p class="muted">Загрузка…</p>';
+    let sourceText = null;
+    if (cw){
+      try{
+        const dataRes = await fetch(cw.data_file);
+        const cwData = await dataRes.json();
+        sourceText = cwData.source || null;
+      }catch(e){}
+    }
+    litEl.innerHTML = '';
+    if (sourceText){
+      const box = document.createElement('div');
+      box.className = 'lit-card';
+      box.textContent = sourceText;
+      litEl.appendChild(box);
+    }
+    (REGISTRY.literature_default || []).forEach(lit => {
+      const href = lit.path || lit.url;
+      if (href){ litEl.appendChild(linkBtn('📕 ' + lit.title, href)); }
+      else {
+        const box = document.createElement('div');
+        box.className = 'lit-card';
+        box.textContent = '📕 ' + lit.title;
+        litEl.appendChild(box);
+      }
+    });
+
+    document.getElementById('screenHome').hidden = true;
+    document.getElementById('screenTopic').hidden = false;
+    window.scrollTo(0,0);
+    history.pushState({topic: topicNumber}, '', '#tema' + topicNumber);
+  }
+
+  function goHome(){
+    document.getElementById('screenTopic').hidden = true;
+    document.getElementById('screenHome').hidden = false;
+    window.scrollTo(0,0);
+  }
+
+  document.getElementById('btnBack').addEventListener('click', () => { history.back(); });
+  window.addEventListener('popstate', (e) => {
+    if (e.state && e.state.topic) openTopic(e.state.topic); else goHome();
+  });
+
+  async function init(){
+    try{
+      const [regRes, catRes] = await Promise.all([fetch(REGISTRY_URL), fetch(CATALOG_URL)]);
+      REGISTRY = await regRes.json();
+      CATALOG = await catRes.json();
+
+      document.getElementById('disciplineName').textContent = '📚 ' + REGISTRY.discipline.toUpperCase();
+
+      const syllBtn = document.getElementById('btnSyllabus');
+      if (REGISTRY.syllabus_pdf){ syllBtn.href = REGISTRY.syllabus_pdf; syllBtn.hidden = false; }
+      else { syllBtn.hidden = true; }
+
+      const readyCount = REGISTRY.topics.filter(t => t.presentation || t.video || t.lecture || t.test || t.practice || findCrossword(t.topic_number)).length;
+      document.getElementById('disciplineMeta').textContent =
+        REGISTRY.topics.length + ' тем · ' + readyCount + ' с готовыми материалами';
+
+      renderTopicsList();
+
+      const hashMatch = location.hash.match(/^#tema(\d+)$/);
+      if (hashMatch) openTopic(parseInt(hashMatch[1], 10));
+    }catch(err){
+      document.getElementById('topicsList').innerHTML =
+        '<p style="color:#ff8080">Не удалось загрузить материалы: ' + err.message + '</p>';
+    }
+  }
+  init();
+})();
+</script>
+</body>
+</html>

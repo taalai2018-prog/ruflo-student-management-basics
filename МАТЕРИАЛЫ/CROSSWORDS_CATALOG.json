@@ -1,0 +1,16 @@
+{
+  "crosswords": [
+    {
+      "discipline": "Основы менеджмента",
+      "discipline_slug": "osnovy_menedzhmenta",
+      "topic_number": 1,
+      "topic_title": "Понятие менеджмента, его сущность и развитие управленческой мысли",
+      "activity_type": "crossword",
+      "data_file": "МАТЕРИАЛЫ/ОСНОВЫ_МЕНЕДЖМЕНТА/КРОССВОРДЫ/crossword_data_osn_menedzh_topic_01.json",
+      "interactive_path": "МАТЕРИАЛЫ/ОСНОВЫ_МЕНЕДЖМЕНТА/КРОССВОРДЫ/crossword.html?data=crossword_data_osn_menedzh_topic_01.json&mode=interactive",
+      "print_path": "МАТЕРИАЛЫ/ОСНОВЫ_МЕНЕДЖМЕНТА/КРОССВОРДЫ/crossword.html?data=crossword_data_osn_menedzh_topic_01.json&mode=print",
+      "words_count": 15,
+      "status": "ready"
+    }
+  ]
+}
