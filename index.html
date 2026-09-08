@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <meta name="color-scheme" content="dark">
-<title>RUFLO УРОК — Студент</title>
+<title>RUFLO STUDENT — Основы менеджмента</title>
 <style>
   :root{
     --bg:#000; --card:#111; --card2:#161616; --border:#333;
@@ -64,7 +64,7 @@
 <div class="wrap">
 
   <div id="screenHome">
-    <div class="top"><span class="emoji">🎓</span><h1>RUFLO УРОК</h1></div>
+    <div class="top"><span class="emoji">🎓</span><h1>RUFLO STUDENT</h1></div>
 
     <div class="discipline-card">
       <h2 id="disciplineName">📚 …</h2>
@@ -90,6 +90,9 @@
 
     <div class="section-title">🎬 ВИДЕОУРОК</div>
     <div id="matVideo"></div>
+
+    <div class="section-title">🧩 КАРТОЧКИ</div>
+    <div id="matCards"></div>
 
     <div class="section-title">🧩 КРОССВОРД</div>
     <div id="matCrossword"></div>
@@ -181,7 +184,7 @@
     root.innerHTML = '';
     REGISTRY.topics.forEach(t => {
       const cw = findCrossword(t.topic_number);
-      const hasAny = t.presentation || t.video || t.lecture || t.test || t.practice || cw;
+      const hasAny = t.presentation || t.video || t.lecture || t.test || t.practice || t.cards || cw;
       const card = document.createElement('div');
       card.className = 'topic-card';
       card.innerHTML =
@@ -225,6 +228,12 @@
       vidEl.appendChild(shareRow);
       if (accessInfo().warn) vidEl.appendChild(lanWarnBadge());
     } else { vidEl.appendChild(pendingBtn('Материал готовится')); }
+
+    const cardsEl = document.getElementById('matCards');
+    if (t.cards){
+      materialWithShare(cardsEl, linkBtn('🧩 РЕШИТЬ КАРТОЧКИ', t.cards),
+        t.topic_number, t.topic_title, '🧩 Карточки', t.cards);
+    } else { cardsEl.innerHTML = ''; cardsEl.appendChild(pendingBtn('Материал готовится')); }
 
     const cwEl = document.getElementById('matCrossword');
     const cw = findCrossword(t.topic_number);
@@ -308,7 +317,7 @@
       if (REGISTRY.syllabus_pdf){ syllBtn.href = REGISTRY.syllabus_pdf; syllBtn.hidden = false; }
       else { syllBtn.hidden = true; }
 
-      const readyCount = REGISTRY.topics.filter(t => t.presentation || t.video || t.lecture || t.test || t.practice || findCrossword(t.topic_number)).length;
+      const readyCount = REGISTRY.topics.filter(t => t.presentation || t.video || t.lecture || t.test || t.practice || t.cards || findCrossword(t.topic_number)).length;
       document.getElementById('disciplineMeta').textContent =
         REGISTRY.topics.length + ' тем · ' + readyCount + ' с готовыми материалами';
 
