@@ -81,6 +81,7 @@
     <button class="btn back" id="btnBack">← НАЗАД</button>
     <p class="topic-num" id="topicNum"></p>
     <h2 id="topicTitle"></h2>
+    <div id="matLessonPage"></div>
 
     <div class="section-title">📖 ЛЕКЦИЯ</div>
     <div id="matLecture"></div>
@@ -184,7 +185,7 @@
     root.innerHTML = '';
     REGISTRY.topics.forEach(t => {
       const cw = findCrossword(t.topic_number);
-      const hasAny = t.presentation || t.video || t.lecture || t.test || t.practice || t.cards || cw;
+      const hasAny = t.presentation || t.video || t.lecture || t.test || t.practice || t.cards || t.cards_page || t.lesson_page || cw;
       const card = document.createElement('div');
       card.className = 'topic-card';
       card.innerHTML =
@@ -201,6 +202,12 @@
     if (!t) return;
     document.getElementById('topicNum').textContent = 'ТЕМА №' + t.topic_number;
     document.getElementById('topicTitle').textContent = t.topic_title;
+
+    const lessonEl = document.getElementById('matLessonPage');
+    if (t.lesson_page){
+      materialWithShare(lessonEl, linkBtn('📚 ОТКРЫТЬ УРОК ' + t.topic_number, t.lesson_page),
+        t.topic_number, t.topic_title, '📚 Урок целиком', t.lesson_page);
+    } else { lessonEl.innerHTML = ''; }
 
     const lecEl = document.getElementById('matLecture');
     if (t.lecture){
@@ -230,7 +237,10 @@
     } else { vidEl.appendChild(pendingBtn('Материал готовится')); }
 
     const cardsEl = document.getElementById('matCards');
-    if (t.cards){
+    if (t.cards_page){
+      materialWithShare(cardsEl, linkBtn('🧩 РЕШИТЬ КАРТОЧКИ', t.cards_page, (t.cards_count || '') + (t.cards_count ? ' вопросов' : '')),
+        t.topic_number, t.topic_title, '🧩 Карточки', t.cards_page);
+    } else if (t.cards){
       materialWithShare(cardsEl, linkBtn('🧩 РЕШИТЬ КАРТОЧКИ', t.cards),
         t.topic_number, t.topic_title, '🧩 Карточки', t.cards);
     } else { cardsEl.innerHTML = ''; cardsEl.appendChild(pendingBtn('Материал готовится')); }
@@ -317,7 +327,7 @@
       if (REGISTRY.syllabus_pdf){ syllBtn.href = REGISTRY.syllabus_pdf; syllBtn.hidden = false; }
       else { syllBtn.hidden = true; }
 
-      const readyCount = REGISTRY.topics.filter(t => t.presentation || t.video || t.lecture || t.test || t.practice || t.cards || findCrossword(t.topic_number)).length;
+      const readyCount = REGISTRY.topics.filter(t => t.presentation || t.video || t.lecture || t.test || t.practice || t.cards || t.cards_page || t.lesson_page || findCrossword(t.topic_number)).length;
       document.getElementById('disciplineMeta').textContent =
         REGISTRY.topics.length + ' тем · ' + readyCount + ' с готовыми материалами';
 

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Флеш-карточки — RUFLO УРОК</title>
+<style>
+  :root{ color-scheme: dark; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:#0b1020; color:#fff; font-family:"Segoe UI",Arial,sans-serif; }
+  header{ padding:16px 18px 8px; border-bottom:2px solid #1e3a8a; }
+  header h1{ font-size:22px; margin:0 0 6px; color:#fff; }
+  .meta{ font-size:15px; color:#93c5fd; }
+  .hint{ font-size:14px; color:#7c9cf5; margin-top:6px; }
+  main{ padding:14px 14px 60px; max-width:1100px; margin:0 auto; }
+  .backlink{ display:inline-block; margin:14px 0; color:#93c5fd; font-size:15px; text-decoration:none; }
+  .toolbar{ display:flex; flex-wrap:wrap; gap:10px; margin:0 0 18px; }
+  .btn{ font-size:16px; padding:12px 18px; border-radius:10px; border:2px solid #1e40af; background:#fff; color:#1e3a8a; cursor:pointer; }
+  .btn.primary{ background:#1e40af; color:#fff; }
+  .grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:16px; }
+  .flip{ perspective:1200px; height:190px; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; user-select:none; }
+  .flip-inner{ position:relative; width:100%; height:100%; transition:transform 0.5s; transform-style:preserve-3d; }
+  .flip.flipped .flip-inner{ transform:rotateY(180deg); }
+  .face{ position:absolute; inset:0; backface-visibility:hidden; border-radius:14px; padding:16px; display:flex; align-items:center; justify-content:center; text-align:center; overflow:auto; }
+  .front{ background:#fff; color:#1e3a8a; border:3px solid #1e40af; font-size:22px; font-weight:800; letter-spacing:0.5px; }
+  .back{ background:#0d3b66; color:#fff; border:3px solid #4fd1c5; font-size:16px; transform:rotateY(180deg); }
+  .counter{ font-size:15px; color:#facc15; margin:0 0 14px; }
+  @media (max-width:480px){ .front{ font-size:19px; } .back{ font-size:15px; } .flip{ height:210px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>🃏 Флеш-карточки — термин и определение</h1>
+  <div class="meta" id="meta">Загрузка…</div>
+  <div class="hint">Нажмите на карточку, чтобы увидеть определение. Нажмите ещё раз — вернуться к термину.</div>
+</header>
+<main>
+  <a class="backlink" href="../../../index.html">← Назад к теме</a>
+  <div class="toolbar">
+    <button class="btn" id="btnShuffle">🔀 Перемешать</button>
+    <button class="btn primary" id="btnFlipAll">🔄 Перевернуть все</button>
+  </div>
+  <div class="counter" id="counter"></div>
+  <div class="grid" id="grid"></div>
+</main>
+<script>
+(function(){
+  'use strict';
+  const params = new URLSearchParams(location.search);
+  const dataFile = params.get('data') || 'flashcards_data_osn_menedzh_tema01.json';
+  let cards = [];
+  let allFlipped = false;
+
+  function shuffle(arr){
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function render(){
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    cards.forEach(c => {
+      const flip = document.createElement('div');
+      flip.className = 'flip';
+      flip.innerHTML = `
+        <div class="flip-inner">
+          <div class="face front">${c.term}</div>
+          <div class="face back">${c.definition}</div>
+        </div>`;
+      let lastToggle = 0;
+      function toggleFlip(e){
+        const now = Date.now();
+        if (now - lastToggle < 350) return; // защита от двойного срабатывания touchend+click
+        lastToggle = now;
+        if (e && e.cancelable) e.preventDefault();
+        flip.classList.toggle('flipped');
+      }
+      flip.addEventListener('touchend', toggleFlip, { passive: false });
+      flip.addEventListener('click', toggleFlip);
+      grid.appendChild(flip);
+    });
+    document.getElementById('counter').textContent = `Карточек: ${cards.length}`;
+  }
+
+  document.getElementById('btnShuffle').addEventListener('click', () => {
+    cards = shuffle(cards);
+    render();
+  });
+  document.getElementById('btnFlipAll').addEventListener('click', () => {
+    allFlipped = !allFlipped;
+    document.querySelectorAll('.flip').forEach(f => f.classList.toggle('flipped', allFlipped));
+  });
+
+  fetch(dataFile).then(r => r.json()).then(data => {
+    cards = data.cards || [];
+    document.getElementById('meta').textContent =
+      `${data.discipline || ''} · Тема ${data.topic_number || ''}: ${data.topic_title || ''} · ${cards.length} карточек`;
+    document.title = 'Флеш-карточки — ' + (data.topic_title || 'RUFLO УРОК');
+    render();
+  }).catch(err => {
+    document.getElementById('meta').textContent = 'Не удалось загрузить карточки: ' + err.message;
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Основы менеджмента — Урок 2</title>
+<style>
+  :root{
+    --bg:#000; --card:#111; --card2:#161616; --border:#333;
+    --gold:#FFD700; --text:#ffffff; --muted:#b8b8b8; --ok:#4ade80; --bad:#f87171;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:Segoe UI,Arial,sans-serif;overflow-x:hidden}
+  body{padding:16px;padding-bottom:60px}
+  .wrap{max-width:760px;margin:0 auto}
+  h1{font-size:28px;margin:0 0 4px 0;line-height:1.25}
+  h2{font-size:23px;margin:26px 0 10px 0;line-height:1.3;color:var(--gold)}
+  h3{font-size:19px;margin:16px 0 8px 0}
+  p, li{font-size:18px;line-height:1.6}
+  .muted{color:var(--muted);font-size:16px}
+  .top{margin-bottom:10px}
+  .top .emoji{font-size:30px}
+  .topic-title{font-size:22px;font-weight:700;margin:2px 0 16px 0;color:#fff}
+
+  button, .btn{
+    display:block; width:100%; box-sizing:border-box;
+    font-size:19px; font-weight:700; padding:16px 18px; margin-bottom:12px;
+    border-radius:14px; border:2px solid var(--border); background:var(--card);
+    color:var(--text); text-align:left; cursor:pointer; min-height:52px;
+    text-decoration:none;
+  }
+  button:active, .btn:active{transform:scale(0.98)}
+  .btn.primary{background:var(--gold);color:#000;border-color:var(--gold)}
+  .btn.pending{background:transparent;color:var(--muted);border-style:dashed;cursor:default}
+  .btn.back{background:transparent;border-color:var(--gold);color:var(--gold);font-size:18px;padding:12px 16px;margin-bottom:14px}
+
+  .navrow{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 22px 0}
+  .navrow a, .navrow button{flex:1 1 140px;margin-bottom:0;font-size:16px;padding:12px 10px;text-align:center}
+
+  .card{background:var(--card);border:2px solid var(--border);border-radius:16px;padding:18px;margin-bottom:16px}
+  .card2{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
+
+  .goal-box{background:var(--card2);border-left:4px solid var(--gold);border-radius:8px;padding:16px 18px;margin-bottom:8px}
+
+  ul.checklist{list-style:none;margin:0;padding:0}
+  ul.checklist li{padding:10px 0 10px 34px;position:relative;border-bottom:1px solid var(--border)}
+  ul.checklist li:last-child{border-bottom:none}
+  ul.checklist li::before{content:"✔";position:absolute;left:0;top:10px;color:var(--ok);font-weight:800}
+
+  .term{font-weight:800;color:var(--gold)}
+
+  /* Схема — уровни управления */
+  .pyramid{display:flex;flex-direction:column;align-items:center;gap:6px;margin:18px 0}
+  .pyramid .level{border-radius:10px;padding:14px 10px;text-align:center;font-weight:800;color:#000;width:100%}
+  .pyramid .lvl1{background:var(--gold);max-width:60%;font-size:16px}
+  .pyramid .lvl2{background:#e5c100;max-width:80%;font-size:16px}
+  .pyramid .lvl3{background:#c9a800;max-width:100%;font-size:16px}
+  .pyramid .level small{display:block;font-weight:500;font-size:13px;margin-top:4px;color:#1a1a1a}
+
+  .schema-grid{display:grid;grid-template-columns:1fr;gap:10px;margin:18px 0}
+  @media(min-width:520px){ .schema-grid.three{grid-template-columns:1fr 1fr 1fr} }
+  .schema-box{background:var(--card2);border:2px solid var(--gold);border-radius:12px;padding:14px;text-align:center}
+  .schema-box b{color:var(--gold);display:block;margin-bottom:6px;font-size:17px}
+  .schema-box span{font-size:15px;color:var(--muted)}
+
+  /* Мини-тест */
+  .q{background:var(--card);border:2px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px}
+  .q p.qtext{font-weight:700;margin:0 0 10px 0}
+  .opt{display:block;width:100%;text-align:left;background:var(--card2);border:2px solid var(--border);
+    border-radius:10px;padding:12px 14px;margin-bottom:8px;color:var(--text);font-size:16px;cursor:pointer}
+  .opt.selected{border-color:var(--gold)}
+  .opt.correct{border-color:var(--ok);background:#123a1f}
+  .opt.wrong{border-color:var(--bad);background:#3a1212}
+  #testResult{font-size:20px;font-weight:800;color:var(--gold);margin-top:10px;display:none}
+
+  /* Карточки на странице */
+  .cardsgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+  @media(max-width:420px){ .cardsgrid{grid-template-columns:1fr} }
+  .term-card{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px}
+  .term-card b{color:var(--gold);display:block;margin-bottom:4px;font-size:16px}
+  .term-card span{font-size:14px;color:var(--muted)}
+
+  ol.tasks li, ol.controlq li{margin-bottom:14px}
+  .hw-box{background:var(--card2);border:1px solid var(--gold);border-radius:12px;padding:18px;font-size:18px;line-height:1.6}
+
+  a.section-anchor{scroll-margin-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <a class="btn back" href="../../../index.html">← Назад к темам</a>
+
+  <div class="top">
+    <span class="emoji">🎓</span>
+  </div>
+  <h1>Основы менеджмента — Урок 2</h1>
+  <p class="topic-title">ТЕМА №2: Сущность и характерные черты современного менеджмента</p>
+
+  <div class="navrow">
+    <a class="btn" href="#lecture">📖 Лекция</a>
+    <a class="btn pending" href="javascript:void(0)" onclick="alert('Видео к этой теме пока готовится')">▶ Видео (готовится)</a>
+    <a class="btn" href="#test">📝 Тест</a>
+    <a class="btn" href="#cards">🃏 Карточки</a>
+    <a class="btn" href="#crossword">🧩 Кроссворд</a>
+    <a class="btn" href="#practice">✅ Практика</a>
+  </div>
+
+  <!-- 3. Цель -->
+  <h2 id="goal" class="section-anchor">🎯 Цель урока</h2>
+  <div class="goal-box">
+    <p style="margin:0">Сформировать у студентов чёткое представление о сущности современного менеджмента, его отличии от близких понятий (управление, предпринимательство, бизнес), а также о характерных чертах менеджмента — уровнях управления в организации и основных видах менеджмента.</p>
+  </div>
+
+  <!-- 4. Что узнаете -->
+  <h2 id="outcomes" class="section-anchor">✅ Что вы будете знать после урока</h2>
+  <div class="card">
+    <ul class="checklist">
+      <li>Что такое менеджмент и чем он отличается от более широкого понятия «управление»</li>
+      <li>Кто такой менеджер, предприниматель и бизнесмен и в чём разница между ними</li>
+      <li>Какие бывают уровни управления в организации: высший, средний, низовой</li>
+      <li>Какие существуют виды менеджмента: общий/функциональный, нормативный/стратегический/оперативный</li>
+      <li>Как применять эти понятия на практических примерах из реальных организаций</li>
+    </ul>
+  </div>
+
+  <!-- 5. Лекция -->
+  <h2 id="lecture" class="section-anchor">📖 Краткая лекция</h2>
+
+  <h3>Менеджмент и управление — в чём разница</h3>
+  <p>Слова «менеджмент» и «менеджер» прочно вошли в наш обиход вместе с развитием рыночной экономики. В узком смысле <span class="term">менеджмент</span> — это искусство добиваться поставленных целей, используя труд, интеллект и мотивы поведения других людей. В более широком значении менеджмент — это, с одной стороны, деятельность, направленная на планирование, организацию и эффективное использование материальных, трудовых, финансовых и информационных ресурсов; а с другой стороны — совокупность принципов, методов и форм управления, используемых с целью повышения эффективности работы организации и увеличения прибыли.</p>
+  <p>Термин <span class="term">«управление»</span> имеет более широкий смысл по сравнению с термином «менеджмент». Управление — это воздействие управляющей системы (субъекта управления) на управляемую систему (объект управления) с целью перевода управляемой системы в требуемое состояние. Когда говорят об обезличенном управлении, используют понятие «администрирование». Менеджмент же — это управление конкретными людьми в конкретной организации, персонифицированное и осуществляемое профессионалами.</p>
+
+  <h3>Менеджер, предприниматель, бизнесмен</h3>
+  <p><span class="term">Менеджер</span> — не просто инженер, занимающийся управлением, а профессиональный управляющий, реализующий одну или систему функций управления конкретной организацией. Менеджер всегда занимает постоянную должность в организации, в его подчинении находятся люди.</p>
+  <p><span class="term">Бизнесмен</span> — это владелец капитала, находящегося в обороте и приносящего прибыль. Это может быть единоличный хозяин, в подчинении которого никто не находится, или человек, не являющийся членом организации, в которую он вложил деньги.</p>
+  <p><span class="term">Предпринимательство</span> является частным случаем бизнеса. Это понятие было введено в середине XVIII века французским экономистом Ришаром Кантеноном. <span class="term">Предприниматель</span> — это человек, берущий на себя ответственность за риск в бизнесе, рискующий своим капиталом, вкладывающий деньги в продвижение нового товара или услуги на рынок. Не все предприниматели, участвуя в формировании целей при создании организации, выполняют функцию менеджера — но успешный предприниматель обычно является и результативным менеджером.</p>
+
+  <h3>Организация как объект управления</h3>
+  <p><span class="term">Организация</span> — целенаправленная система, которая является частью одной или более целенаправленных систем, и части которой (люди) имеют собственные цели.</p>
+
+  <h3>Уровни управления организацией</h3>
+  <p>В менеджменте принято выделять три уровня управления:</p>
+  <ul>
+    <li><span class="term">Высший (институциональный) уровень</span> — на нём формируются цели и политика предприятия, принимаются решения по стратегическим вопросам: освоению новых рынков, взаимоотношениям с конкурентами, адаптации организации к переменам во внешней среде.</li>
+    <li><span class="term">Средний (управленческий) уровень</span> — руководители среднего звена в основном заняты управлением и координацией внутри организации, являются своеобразным буфером между руководителями высшего и низового звеньев (заведующий отделом, начальник бюро, начальник участка, директор филиала).</li>
+    <li><span class="term">Низовой (технический) уровень</span> — руководители, находящиеся непосредственно над рабочими и другими работниками нижнего звена. Они организуют и контролируют работу на своём участке (мастер, мастер смены, руководитель группы, бригадир).</li>
+  </ul>
+
+  <h3>Виды менеджмента</h3>
+  <p>Виды менеджмента — специальные области управленческой деятельности, связанные с решением определённых задач.</p>
+  <p>По признаку объекта различают: <span class="term">общий (генеральный) менеджмент</span> — управление деятельностью организации в целом; и <span class="term">функциональный (специальный) менеджмент</span> — управление определёнными сферами деятельности организации (например, инновационный, производственный, финансовый менеджмент, управление персоналом, маркетингом).</p>
+  <p>По признаку содержания различают: <span class="term">нормативный менеджмент</span> — разработка философии организации, её предпринимательской политики, определение позиции в конкурентной нише рынка; <span class="term">стратегический менеджмент</span> — выработка набора стратегий, их распределение во времени, формирование потенциала успеха организации и обеспечение стратегического контроля за их реализацией; <span class="term">оперативный менеджмент</span> — разработка тактических и оперативных мер, направленных на практическую реализацию принятых стратегий развития организации.</p>
+
+  <!-- 6. Основные понятия -->
+  <h2 id="terms" class="section-anchor">🔑 Основные понятия</h2>
+  <div class="cardsgrid">
+    <div class="term-card"><b>Менеджмент</b><span>Деятельность по планированию, организации и эффективному использованию ресурсов для увеличения прибыли</span></div>
+    <div class="term-card"><b>Управление</b><span>Более широкое понятие: воздействие управляющей системы на управляемую для перевода её в нужное состояние</span></div>
+    <div class="term-card"><b>Менеджер</b><span>Профессиональный управляющий, реализующий функции управления в конкретной организации</span></div>
+    <div class="term-card"><b>Бизнесмен</b><span>Владелец капитала, приносящего прибыль</span></div>
+    <div class="term-card"><b>Предприниматель</b><span>Человек, берущий на себя риск и вкладывающий капитал в новое дело</span></div>
+    <div class="term-card"><b>Организация</b><span>Целенаправленная система, часть которой (люди) имеет собственные цели</span></div>
+    <div class="term-card"><b>Высшее звено</b><span>Формирует цели и политику предприятия, принимает стратегические решения</span></div>
+    <div class="term-card"><b>Среднее звено</b><span>Буфер между высшим и низовым звеньями, координация внутри организации</span></div>
+    <div class="term-card"><b>Низовое звено</b><span>Непосредственно организует и контролирует работу рабочих на участке</span></div>
+    <div class="term-card"><b>Стратегический менеджмент</b><span>Разработка и распределение стратегий во времени, стратегический контроль</span></div>
+    <div class="term-card"><b>Оперативный менеджмент</b><span>Тактические и оперативные меры для реализации принятых стратегий</span></div>
+    <div class="term-card"><b>Функциональный менеджмент</b><span>Управление отдельной сферой: персоналом, финансами, маркетингом, инновациями</span></div>
+  </div>
+
+  <!-- 7. Схема -->
+  <h2 id="schema" class="section-anchor">📊 Наглядная схема — уровни управления</h2>
+  <div class="pyramid">
+    <div class="level lvl1">ВЫСШИЙ УРОВЕНЬ<small>цели, политика, стратегия</small></div>
+    <div class="level lvl2">СРЕДНИЙ УРОВЕНЬ<small>координация, буфер</small></div>
+    <div class="level lvl3">НИЗОВОЙ УРОВЕНЬ<small>организация и контроль работы</small></div>
+  </div>
+  <p class="muted">Схема: чем выше уровень управления — тем шире охват решений и меньше людей на этом уровне; чем ниже уровень — тем ближе руководитель к непосредственному исполнению работы.</p>
+
+  <div class="schema-grid three">
+    <div class="schema-box"><b>Нормативный</b><span>философия и политика организации</span></div>
+    <div class="schema-box"><b>Стратегический</b><span>набор стратегий на будущее</span></div>
+    <div class="schema-box"><b>Оперативный</b><span>тактические меры «здесь и сейчас»</span></div>
+  </div>
+
+  <!-- 8. Практика -->
+  <h2 id="practice" class="section-anchor">✅ Практическое задание</h2>
+  <div class="card">
+    <ol class="tasks">
+      <li>Приведите собственный пример, где важно разграничить понятия «управление» и «менеджмент». Обоснуйте свой выбор.</li>
+      <li>Опишите на примере известной вам организации (учебное заведение, компания, кружок), кто относится к высшему, среднему и низовому уровням управления.</li>
+      <li>Сравните предпринимателя и менеджера на конкретном примере (например, основатель стартапа и наёмный директор). В чём разница их ролей?</li>
+      <li>Приведите пример стратегического и пример оперативного решения для одной и той же организации.</li>
+      <li>Определите, к какому виду функционального менеджмента (персонал, финансы, маркетинг, инновации) относится задача «снизить текучесть кадров в компании». Объясните ответ.</li>
+    </ol>
+  </div>
+
+  <!-- 9. Тест -->
+  <h2 id="test" class="section-anchor">📝 Мини-тест (10 вопросов)</h2>
+  <div id="testArea"></div>
+  <div id="testResult"></div>
+
+  <!-- 10. Карточки -->
+  <h2 id="cards" class="section-anchor">🃏 Карточки термин → определение</h2>
+  <p class="muted">Перетащите определение к нужному термину, затем проверьте себя.</p>
+  <a class="btn primary" href="../КАРТОЧКИ/flashcards.html?data=flashcards_data_osn_menedzh_tema02.json">🃏 ОТКРЫТЬ ИНТЕРАКТИВНЫЕ КАРТОЧКИ</a>
+  <div class="cardsgrid" id="staticCards"></div>
+
+  <!-- 11. Кроссворд -->
+  <h2 id="crossword" class="section-anchor">🧩 Кроссворд по теме</h2>
+  <a class="btn primary" href="../КРОССВОРДЫ/crossword.html?data=crossword_data_osn_menedzh_topic_02.json&mode=interactive">🧩 РЕШИТЬ КРОССВОРД</a>
+
+  <!-- 12. Контрольные вопросы -->
+  <h2 id="controlq" class="section-anchor">❓ Контрольные вопросы</h2>
+  <div class="card">
+    <ol class="controlq">
+      <li>Чем менеджмент отличается от управления по смыслу?</li>
+      <li>Назовите три уровня управления организацией и коротко охарактеризуйте каждый.</li>
+      <li>В чём принципиальное различие между предпринимателем и бизнесменом?</li>
+      <li>Что предполагает стратегический менеджмент в отличие от оперативного?</li>
+      <li>Приведите пример функционального менеджмента.</li>
+    </ol>
+  </div>
+
+  <!-- 13. Домашнее задание -->
+  <h2 id="homework" class="section-anchor">🏠 Домашнее задание</h2>
+  <div class="hw-box">
+    Письменно (в тетради или в файле) опишите на примере одной реальной организации (компании, вуза, магазина, где вы бываете): кто является менеджером, к какому уровню управления он относится и какой вид менеджмента (стратегический, оперативный или функциональный) он чаще всего применяет в своей работе. Объём — 0,5–1 страницы.
+  </div>
+
+  <!-- 14. Навигация внизу -->
+  <div class="navrow" style="margin-top:24px">
+    <a class="btn" href="#lecture">📖 Лекция</a>
+    <a class="btn" href="#test">📝 Тест</a>
+    <a class="btn" href="#cards">🃏 Карточки</a>
+    <a class="btn" href="#crossword">🧩 Кроссворд</a>
+    <a class="btn" href="#practice">✅ Практика</a>
+  </div>
+  <a class="btn back" href="../../../index.html">← Назад к темам</a>
+
+</div>
+
+<script>
+  // Статичные карточки (для показа без перехода)
+  const STATIC_TERMS = [
+    ["Менеджмент","Деятельность по планированию, организации и эффективному использованию ресурсов для увеличения прибыли"],
+    ["Управление","Более широкое понятие: воздействие управляющей системы на управляемую для перевода её в нужное состояние"],
+    ["Менеджер","Профессиональный управляющий, реализующий функции управления в конкретной организации"],
+    ["Бизнесмен","Владелец капитала, приносящего прибыль"],
+    ["Предприниматель","Человек, берущий на себя риск и вкладывающий капитал в новое дело"],
+    ["Организация","Целенаправленная система, часть которой (люди) имеет собственные цели"],
+    ["Высшее звено","Формирует цели и политику предприятия, принимает стратегические решения"],
+    ["Среднее звено","Буфер между высшим и низовым звеньями, координация внутри организации"],
+    ["Низовое звено","Непосредственно организует и контролирует работу рабочих на участке"],
+    ["Стратегический менеджмент","Разработка и распределение стратегий во времени, стратегический контроль"]
+  ];
+  const sc = document.getElementById('staticCards');
+  STATIC_TERMS.forEach(([t,d])=>{
+    const div = document.createElement('div');
+    div.className = 'term-card';
+    div.innerHTML = `<b>${t}</b><span>${d}</span>`;
+    sc.appendChild(div);
+  });
+
+  // Мини-тест — 10 вопросов, ответы только в JS, нигде не показываются заранее
+  const QUESTIONS = [
+    { q: "Что наиболее точно определяет менеджмент как деятельность?",
+      opts: [
+        "Деятельность, направленная на планирование, организацию и эффективное использование ресурсов для увеличения прибыли",
+        "Любое воздействие человека на природу",
+        "Только контроль за финансами компании",
+        "Полный синоним слова «бизнес» без каких-либо отличий"
+      ], correct: 0 },
+    { q: "Чем управление отличается от менеджмента по смыслу?",
+      opts: [
+        "Это полностью одинаковые понятия без различий",
+        "Управление — более широкое понятие, применимое к любым системам, а менеджмент — персонифицированное управление людьми в организации",
+        "Менеджмент шире, чем управление",
+        "Управление относится только к технике"
+      ], correct: 1 },
+    { q: "Кто такой менеджер?",
+      opts: [
+        "Владелец капитала, не работающий в организации",
+        "Любой сотрудник компании",
+        "Профессиональный управляющий, реализующий функции управления конкретной организацией",
+        "Представитель органов государственной власти"
+      ], correct: 2 },
+    { q: "Чем предприниматель отличается от менеджера?",
+      opts: [
+        "Различий нет, это синонимы",
+        "Менеджер обязательно должен быть собственником капитала",
+        "Предприниматель всегда наёмный работник",
+        "Предприниматель берёт на себя риск и вкладывает капитал в новое дело, а менеджер — наёмный профессионал, управляющий организацией"
+      ], correct: 3 },
+    { q: "Организация — это...",
+      opts: [
+        "Здание, где работают сотрудники",
+        "Любое собрание людей без общей цели",
+        "Целенаправленная система, являющаяся частью одной или более целенаправленных систем",
+        "Синоним слова «менеджмент»"
+      ], correct: 2 },
+    { q: "На каком уровне управления принимаются стратегические решения и формируется политика предприятия?",
+      opts: [
+        "Низовой (технический) уровень",
+        "Средний (управленческий) уровень",
+        "Уровень отсутствует в теории менеджмента",
+        "Высший (институциональный) уровень"
+      ], correct: 3 },
+    { q: "Какую роль выполняют руководители среднего звена в организации?",
+      opts: [
+        "Буфера между высшим и низовым звеньями, обеспечивая координацию",
+        "Только физического труда",
+        "Высшей стратегической власти",
+        "Контроля за государственными органами"
+      ], correct: 0 },
+    { q: "Что предполагает стратегический менеджмент?",
+      opts: [
+        "Только оперативный контроль за кассой",
+        "Отказ от планирования будущего",
+        "Разработку набора стратегий, их распределение во времени и формирование потенциала успеха организации",
+        "Выполнение разовых поручений без плана"
+      ], correct: 2 },
+    { q: "Что относится к оперативному менеджменту?",
+      opts: [
+        "Выбор долгосрочной миссии компании на 10 лет",
+        "Разработку тактических и оперативных мер для практической реализации принятых стратегий",
+        "Философию организации",
+        "Только стратегическое планирование"
+      ], correct: 1 },
+    { q: "Функциональный менеджмент — это...",
+      opts: [
+        "Управление только одним человеком",
+        "Синоним генерального менеджмента",
+        "Вид менеджмента, не существующий на практике",
+        "Управление определённой сферой деятельности организации, например персоналом, финансами или маркетингом"
+      ], correct: 3 }
+  ];
+
+  const testArea = document.getElementById('testArea');
+  const userAnswers = new Array(QUESTIONS.length).fill(null);
+
+  QUESTIONS.forEach((item, qi) => {
+    const box = document.createElement('div');
+    box.className = 'q';
+    const p = document.createElement('p');
+    p.className = 'qtext';
+    p.textContent = `${qi + 1}. ${item.q}`;
+    box.appendChild(p);
+    item.opts.forEach((optText, oi) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'opt';
+      b.textContent = optText;
+      b.addEventListener('click', () => {
+        userAnswers[qi] = oi;
+        box.querySelectorAll('.opt').forEach(el => el.classList.remove('selected'));
+        b.classList.add('selected');
+      });
+      box.appendChild(b);
+    });
+    testArea.appendChild(box);
+  });
+
+  const submitBtn = document.createElement('button');
+  submitBtn.className = 'btn primary';
+  submitBtn.textContent = '✅ Проверить результат';
+  submitBtn.addEventListener('click', () => {
+    let score = 0;
+    QUESTIONS.forEach((item, qi) => {
+      if (userAnswers[qi] === item.correct) score++;
+    });
+    const resEl = document.getElementById('testResult');
+    resEl.style.display = 'block';
+    resEl.textContent = `Ваш результат: ${score} из ${QUESTIONS.length}`;
+    resEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+  testArea.appendChild(submitBtn);
+</script>
+</body>
+</html>

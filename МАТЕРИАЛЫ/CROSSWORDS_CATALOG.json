@@ -11,6 +11,19 @@
       "print_path": "МАТЕРИАЛЫ/ОСНОВЫ_МЕНЕДЖМЕНТА/КРОССВОРДЫ/crossword.html?data=crossword_data_osn_menedzh_topic_01.json&mode=print",
       "words_count": 15,
       "status": "ready"
+    },
+    {
+      "discipline": "Основы менеджмента",
+      "discipline_slug": "osnovy_menedzhmenta",
+      "topic_number": 2,
+      "topic_title": "Сущность и характерные черты современного менеджмента",
+      "activity_type": "crossword",
+      "data_file": "МАТЕРИАЛЫ/ОСНОВЫ_МЕНЕДЖМЕНТА/КРОССВОРДЫ/crossword_data_osn_menedzh_topic_02.json",
+      "interactive_path": "МАТЕРИАЛЫ/ОСНОВЫ_МЕНЕДЖМЕНТА/КРОССВОРДЫ/crossword.html?data=crossword_data_osn_menedzh_topic_02.json&mode=interactive",
+      "print_path": "МАТЕРИАЛЫ/ОСНОВЫ_МЕНЕДЖМЕНТА/КРОССВОРДЫ/crossword.html?data=crossword_data_osn_menedzh_topic_02.json&mode=print",
+      "words_count": 9,
+      "_note": "слово МЕНЕДЖЕР не разместилось в сетке генератором (нет точки пересечения) — осталось в cards.html как термин, но не вошло в кроссворд",
+      "status": "ready"
     }
   ]
 }
